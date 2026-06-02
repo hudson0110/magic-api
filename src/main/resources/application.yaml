@@ -1,3 +1,14 @@
 spring:
   application:
     name: magicapi
+
+  datasource:
+    url: jdbc:oracle:thin:@localhost:1521/XEPDB1
+    username: system
+    password: 123456
+    driver-class-name: oracle.jdbc.OracleDriver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
