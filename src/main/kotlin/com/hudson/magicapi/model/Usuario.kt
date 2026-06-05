@@ -2,9 +2,8 @@ package com.hudson.magicapi.model
 
 import jakarta.persistence.*
 import java.time.LocalDate
-
 import jakarta.validation.constraints.Size
-import org.hibernate.internal.util.collections.Stack
+import java.util.UUID
 
 
 @Entity
@@ -12,8 +11,8 @@ import org.hibernate.internal.util.collections.Stack
 data class Usuario(
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
+    @GeneratedValue
+    val id: UUID? = null,
 
     @Column(nullable = false,  length = 255)
     @Size(min = 3, max = 255)
@@ -26,5 +25,8 @@ data class Usuario(
     @Column(nullable = false)
     val birthDate: LocalDate = LocalDate.now(),
 
-
+    @ElementCollection
+    val stack: MutableList<String> = mutableListOf()
+    
 )
+

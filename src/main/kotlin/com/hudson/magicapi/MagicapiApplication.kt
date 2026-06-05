@@ -9,7 +9,10 @@ class MagicapiApplication
 fun main(args: Array<String>) {
 	runApplication<MagicapiApplication>(*args)
 
-	print("Hello World!")
 
 }
 //container-registry.oracle.com/database/express:latest
+
+//docker ps
+
+//docker start oracle-xe
