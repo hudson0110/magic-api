@@ -11,7 +11,11 @@ interface UsuarioRepository : JpaRepository<Usuario, UUID>
 
 
 /*
-1contoler q prcisa de um servise e repositor e todo precisa de um model
-
-
+ * Interface responsável pelo acesso aos dados da entidade Usuario.
+ * Herda de JpaRepository, disponibilizando automaticamente operações
+ * básicas como salvar, atualizar, remover e buscar registros.
+ * O Spring Data JPA implementa essa interface em tempo de execução,
+ * eliminando a necessidade de escrever consultas SQL simples.
+ * Atua como camada intermediária entre a aplicação e o banco de dados,
+ * facilitando a manutenção e organização do código.
  */

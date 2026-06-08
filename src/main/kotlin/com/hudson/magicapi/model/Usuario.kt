@@ -30,3 +30,14 @@ data class Usuario(
     
 )
 
+/*
+ * Classe que representa a entidade Usuario no sistema.
+ * É mapeada para a tabela USUARIO do banco de dados através do JPA.
+ * Cada atributo da classe corresponde a uma coluna da tabela.
+ * O campo id é a chave primária da entidade e utiliza UUID
+ * para garantir identificadores únicos.
+ * Também são definidas restrições de validação para alguns campos,
+ * como tamanho mínimo e máximo para nome e nick.
+ * Essa classe é utilizada pelo Hibernate para persistir e recuperar
+ * informações dos usuários cadastrados na aplicação.
+ */
