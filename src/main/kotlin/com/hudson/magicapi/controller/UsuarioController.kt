@@ -4,25 +4,52 @@ import com.hudson.magicapi.model.Usuario
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import com.hudson.magicapi.repository.UsuarioRepository
+import com.hudson.magicapi.service.UsuarioService
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PutMapping
+import java.util.UUID
+import jakarta.validation.Valid
+
 
 @RestController
 @RequestMapping("/usuarios")
 class UsuarioController (
-    private val usuarioRepository: UsuarioRepository
+    private val usuarioService: UsuarioService
 ) {
 
     @GetMapping
     fun listar(): List<Usuario> {
-        return usuarioRepository.findAll()
+        return usuarioService.listar()
     }
 
     @PostMapping
     fun criar(@RequestBody usuario: Usuario): Usuario {
-        return usuarioRepository.save(usuario)
+        return usuarioService.criar(usuario)
     }
+
+    @GetMapping("/{id}")
+    fun buscarPorId(@PathVariable id: UUID): Usuario? {
+        return usuarioService.buscarPorId(id)
+    }
+
+    @PutMapping("/{id}")
+    fun editarPorId(
+        @PathVariable id: UUID,
+        @Valid @RequestBody usuario: Usuario
+    ): ResponseEntity<Usuario> {
+
+        val usuarioAtualizado = usuarioService.editarPorId(id, usuario)
+
+        return if (usuarioAtualizado != null) {
+            ResponseEntity.ok(usuarioAtualizado)
+        } else {
+            ResponseEntity.notFound().build()
+        }
+    }
+
 }
 
 /*
