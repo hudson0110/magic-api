@@ -1,0 +1,85 @@
+o que e uma api ?
+
+Uma API é uma interface que permite a comunicação entre sistemas. Em uma API REST, clientes enviam requisições HTTP para
+endpoints específicos, e a aplicação processa essas requisições, acessa os dados necessários e retorna uma resposta apropriada.
+No projeto desenvolvido, a API é responsável por gerenciar operações relacionadas aos usuários, como cadastro, consulta, atualização
+e remoção de registros.
+
+
+@RestController
+
+Indica que uma classe é responsável por receber requisições HTTP e retornar respostas ao cliente. É utilizada para definir os controladores
+da API, que representam o ponto de entrada da aplicação.
+
+@RequestMapping
+
+Define um caminho base para os endpoints de um controlador. Sua principal função é organizar as rotas da aplicação e agrupar operações
+relacionadas a um mesmo recurso.
+
+@GetMapping {consulta}
+
+Mapeia requisições HTTP do tipo GET para um método específico. É utilizado em operações de consulta e recuperação de informações.
+
+@PostMapping {criar}
+
+Mapeia requisições HTTP do tipo POST. É utilizado para operações de criação e cadastro de novos registros.
+
+@PutMapping {editar}
+
+Mapeia requisições HTTP do tipo PUT. É utilizado para atualização de dados já existentes na aplicação.
+
+@DeleteMapping {oq sera ?}
+
+Mapeia requisições HTTP do tipo DELETE. É utilizado para remoção de registros.
+
+@PathVariable
+
+Permite receber valores enviados diretamente pela URL da requisição e disponibilizá-los para utilização dentro do método responsável pelo
+processamento.
+
+@RequestBody
+
+Indica que os dados enviados no corpo(corpo geralmente e o json) da requisição devem ser convertidos automaticamente para um objeto da aplicação, facilitando o
+tratamento das informações recebidas.
+
+@Valid
+
+Solicita a execução das validações definidas para os dados recebidos. Caso alguma regra não seja atendida, a requisição é interrompida
+antes da execução da lógica de negócio.
+
+@NotBlank
+
+Define uma regra de validação que impede o envio de campos vazios ou compostos apenas por espaços em branco.
+
+@Email
+
+Define uma regra de validação para garantir que um campo possua um formato compatível com um endereço de e-mail.
+
+@Entity
+
+Indica que uma classe representa uma entidade persistente da aplicação, sendo associada a uma tabela no banco de dados.
+
+@Table
+
+Permite especificar informações relacionadas à tabela do banco de dados associada a uma entidade.
+
+@Id
+
+Identifica o atributo que será utilizado como chave primária da entidade, garantindo a identificação única de cada registro.
+
+@GeneratedValue
+
+Define que o valor da chave primária será gerado automaticamente pelo mecanismo de persistência utilizado pela aplicação.
+
+@Service
+
+Identifica classes responsáveis pela implementação das regras de negócio. Essa camada atua como intermediária entre os controladores e o
+acesso aos dados.
+
+@Repository
+
+Identifica componentes responsáveis pela comunicação com o banco de dados e pela execução de operações de persistência e consulta.
+
+@Autowired
+
+Permite que o Spring realize a injeção automática de dependências, fornecendo às classes os componentes necessários para seu funcionamento.

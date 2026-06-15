@@ -4,6 +4,7 @@ import com.hudson.magicapi.model.Usuario
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.DeleteMapping
 import com.hudson.magicapi.service.UsuarioService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
 import java.util.UUID
 import jakarta.validation.Valid
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 
 
 @RestController
@@ -26,13 +28,40 @@ class UsuarioController (
     }
 
     @PostMapping
-    fun criar(@RequestBody usuario: Usuario): Usuario {
-        return usuarioService.criar(usuario)
+    fun criar(@RequestBody usuario: Usuario): ResponseEntity<Usuario> {
+        val usuario = usuarioService.criar(usuario)
+        val location =
+            ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(usuario.id)
+                .toUri()
+        return ResponseEntity.created(location).build()
     }
+    /*
 
+    @PostMapping
+    fun create(
+        @RequestBody request: CreateOrderRequest
+    ): ResponseEntity<OrderResponse> {
+        val saved = createOrderUseCase.execute(request.toDomain())
+        val location =
+            ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(saved.id)
+                .toUri()
+        return ResponseEntity.created(location).build()
+    }
+*/
     @GetMapping("/{id}")
-    fun buscarPorId(@PathVariable id: UUID): Usuario? {
-        return usuarioService.buscarPorId(id)
+    fun buscarPorId(@PathVariable id: UUID): ResponseEntity<Usuario> {
+        val usuario = usuarioService.buscarPorId(id)
+        if (usuario != null) {
+            return ResponseEntity.ok(usuario)
+        }else{
+            return ResponseEntity.notFound().build()
+        }
     }
 
     @PutMapping("/{id}")
@@ -49,6 +78,15 @@ class UsuarioController (
             ResponseEntity.notFound().build()
         }
     }
+
+    @DeleteMapping("/{id}")
+    fun deletarPorId(
+        @PathVariable id: UUID): ResponseEntity<Void> {
+        return usuarioService.deletarPorId(id)
+
+    }
+
+
 
 }
 
