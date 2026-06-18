@@ -2,6 +2,7 @@ package com.hudson.magicapi.service
 
 import com.hudson.magicapi.model.Usuario
 import com.hudson.magicapi.repository.UsuarioRepository
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
@@ -15,6 +16,9 @@ class UsuarioService(private val usuarioRepository: UsuarioRepository)
 
 
     fun criar( usuario: Usuario): Usuario {
+        if (usuarioRepository.existsByNick(usuario.nick)){
+            throw DataIntegrityViolationException("Nick já cadastrado")
+        }
         return usuarioRepository.save(usuario)
     }
 

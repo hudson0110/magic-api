@@ -28,7 +28,7 @@ class UsuarioController (
     }
 
     @PostMapping
-    fun criar(@RequestBody usuario: Usuario): ResponseEntity<Usuario> {
+    fun criar(@RequestBody @Valid usuario: Usuario): ResponseEntity<Usuario> {
         val usuario = usuarioService.criar(usuario)
         val location =
             ServletUriComponentsBuilder
@@ -38,22 +38,7 @@ class UsuarioController (
                 .toUri()
         return ResponseEntity.created(location).build()
     }
-    /*
 
-    @PostMapping
-    fun create(
-        @RequestBody request: CreateOrderRequest
-    ): ResponseEntity<OrderResponse> {
-        val saved = createOrderUseCase.execute(request.toDomain())
-        val location =
-            ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(saved.id)
-                .toUri()
-        return ResponseEntity.created(location).build()
-    }
-*/
     @GetMapping("/{id}")
     fun buscarPorId(@PathVariable id: UUID): ResponseEntity<Usuario> {
         val usuario = usuarioService.buscarPorId(id)
