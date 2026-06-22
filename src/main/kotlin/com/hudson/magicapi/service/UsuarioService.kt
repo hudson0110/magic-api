@@ -46,7 +46,12 @@ class UsuarioService(private val usuarioRepository: UsuarioRepository)
     }
 
     fun deletarPorId(id: UUID): ResponseEntity<Void> {
-        usuarioRepository.deleteById(id)
-        return ResponseEntity(HttpStatus.OK)
+        if (usuarioRepository.existsById(id)){
+            usuarioRepository.deleteById(id)
+        }else{
+            return ResponseEntity(HttpStatus.NOT_FOUND)
+        }
+
+        return ResponseEntity(HttpStatus.NO_CONTENT)
     }
 }
