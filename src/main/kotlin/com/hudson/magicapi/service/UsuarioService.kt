@@ -51,7 +51,6 @@ class UsuarioService(private val usuarioRepository: UsuarioRepository)
         }else{
             return ResponseEntity(HttpStatus.NOT_FOUND)
         }
-
         return ResponseEntity(HttpStatus.NO_CONTENT)
     }
 }
