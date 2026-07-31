@@ -29,14 +29,14 @@ class UsuarioController (
 
     @PostMapping
     fun criar(@RequestBody @Valid usuario: Usuario): ResponseEntity<Usuario> {
-        val usuario = usuarioService.criar(usuario)
+        val novoUsuario = usuarioService.criar(usuario)
         val location =
             ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
-                .buildAndExpand(usuario.id)
+                .buildAndExpand(novoUsuario.id)
                 .toUri()
-        return ResponseEntity.created(location).build()
+        return ResponseEntity.created(location).body(novoUsuario)
     }
 
     @GetMapping("/{id}")
