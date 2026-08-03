@@ -16,7 +16,7 @@ class UsuarioService(private val usuarioRepository: UsuarioRepository)
 
 
     fun criar( usuario: Usuario): Usuario {
-        if (usuarioRepository.existsByNick(usuario.nick!!)){
+        if (usuarioRepository.existsByNick(usuario.nick)){
             throw DataIntegrityViolationException("Nick já cadastrado")
         }
         return usuarioRepository.save(usuario)
@@ -36,7 +36,7 @@ class UsuarioService(private val usuarioRepository: UsuarioRepository)
             ?: return null
 
         val usuarioEditado = usuarioExistente.copy(
-            name = usuarioAtualizado.name,
+            nome = usuarioAtualizado.nome,
             nick = usuarioAtualizado.nick,
             birthDate = usuarioAtualizado.birthDate,
             stack = usuarioAtualizado.stack
