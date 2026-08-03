@@ -65,10 +65,12 @@ class UsuarioController (
     }
 
     @DeleteMapping("/{id}")
-    fun deletarPorId(
-        @PathVariable id: UUID): ResponseEntity<Void> {
-        return usuarioService.deletarPorId(id)
-
+    fun deletarPorId(@PathVariable id: UUID): ResponseEntity<Void> {
+        return if (usuarioService.deletarPorId(id)) {
+            ResponseEntity.noContent().build()
+        } else {
+            ResponseEntity.notFound().build()
+        }
     }
 
 }
