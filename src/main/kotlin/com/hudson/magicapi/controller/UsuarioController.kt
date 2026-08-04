@@ -36,6 +36,7 @@ class UsuarioController (
                 .path("/{id}")
                 .buildAndExpand(novoUsuario.id)
                 .toUri()
+        print(location)
         return ResponseEntity.created(location).body(novoUsuario)
     }
 

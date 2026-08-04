@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size
 import java.time.LocalDate
 import java.util.UUID
 import com.hudson.magicapi.validation.ValidStack
-
+import jakarta.validation.constraints.PastOrPresent
 
 
 @Entity
@@ -38,7 +38,7 @@ data class Usuario(
 
     @Column(nullable = false)
     @field:NotNull(message = "Uma data é necessária.")
-    @field:Past(message = "Insira uma data válida.")
+    @field:PastOrPresent(message = "Insira uma data válida.")
     val birthDate: LocalDate,
 
     @ElementCollection
