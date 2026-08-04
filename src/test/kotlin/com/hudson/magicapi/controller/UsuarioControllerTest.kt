@@ -15,6 +15,35 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.time.LocalDate
 import java.util.*
 
+
+/*
+* junit
+* mokito
+*
+*
+*
+*
+*
+* testes necessarios
+* {x} 201 com body ao criar valido
+* {} 400 qunado algum campo estiver
+* {}409 qunado nik ja existe
+*
+* {} 200 com lista
+*
+* {}200 qunado existe
+* {}404 qunado nao existe
+*
+* {}200 quando atualiza os campos
+* {}404 qunado n existe
+* {}400 para validação
+*
+* {}204 inativa
+* {}404 nao exite
+*  */
+
+
+
 @WebMvcTest(UsuarioController::class)
 class UsuarioControllerTest {
 
@@ -27,11 +56,15 @@ class UsuarioControllerTest {
     @Autowired
     lateinit var objectMapper: ObjectMapper
 
+
+
+    //should when
+
     @Test
     fun `201 com body ao criar valido`() {
         val id = UUID.randomUUID()
         val usuario = Usuario(id, "Hudson", "hud", LocalDate.now(), mutableListOf())
-        whenever(usuarioService.criar(any<Usuario>())).thenReturn(usuario)
+        whenever(usuarioService.criar(any<Usuario>())).thenReturn(usuario)//garantindo q to em um ambiante
 
         mockMvc.perform(post("/usuarios")
             .contentType(MediaType.APPLICATION_JSON)

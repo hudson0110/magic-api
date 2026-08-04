@@ -3,13 +3,12 @@ spring:
     name: magicapi
 
   datasource:
-    url: jdbc:h2:mem:magicapi;DB_CLOSE_DELAY=-1
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+    url: jdbc:oracle:thin:@localhost:1521/XEPDB1
+    username: system
+    password: 123456
+    driver-class-name: oracle.jdbc.OracleDriver
 
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: update
     show-sql: true
@@ -17,3 +16,5 @@ spring:
 
 server:
   port: 8080
+
+
