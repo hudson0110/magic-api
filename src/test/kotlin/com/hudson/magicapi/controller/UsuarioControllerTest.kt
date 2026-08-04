@@ -17,32 +17,29 @@ import java.util.*
 
 
 /*
+*
+* Estudar:
+*
 * junit
 * mokito
 *
-*
-*
-*
-*
 * testes necessarios
 * {x} 201 com body ao criar valido
-* {} 400 qunado algum campo estiver
-* {}409 qunado nik ja existe
+* {x} 400 qunado algum campo estiver
+* {x}409 qunado nik ja existe
 *
-* {} 200 com lista
+* {x} 200 com lista
 *
-* {}200 qunado existe
-* {}404 qunado nao existe
+* {x}200 qunado existe
+* {x}404 qunado nao existe
 *
-* {}200 quando atualiza os campos
-* {}404 qunado n existe
-* {}400 para validação
+* {x}200 quando atualiza os campos
+* {x}404 qunado não existe
+* {x}400 para validação
 *
-* {}204 inativa
-* {}404 nao exite
+* {x}204 inativa
+* {x}404 nao exite
 *  */
-
-
 
 @WebMvcTest(UsuarioController::class)
 class UsuarioControllerTest {
@@ -58,7 +55,10 @@ class UsuarioControllerTest {
 
 
 
-    //should when
+    // should when e o padrão de nome dos testes da pags
+    // deve retornar 201 quando criar valido
+    // should retornar 201 when criar valido
+
 
     @Test
     fun `201 com body ao criar valido`() {
@@ -69,24 +69,27 @@ class UsuarioControllerTest {
         mockMvc.perform(post("/usuarios")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(usuario)))
-            .andExpect(status().isCreated)
+            .andExpect(status().isCreated())
             .andExpect(header().exists("Location"))
-            .andExpect(jsonPath("$.name").value("Hudson"))
+            .andExpect(jsonPath("$.nome").value(usuario.nome))
     }
 
     @Test
     fun `400 quando algum campo estiver invalido ao criar`() {
         // Nome curto demais (falha Size) e data futura (falha PastOrPresent)
-        val usuarioInvalido = Usuario(UUID.randomUUID(), "Ab", "h", LocalDate.now().plusDays(1))
+        val usuarioInvalido = Usuario(UUID.randomUUID(), "Bi", "", LocalDate.now().plusDays(1),mutableListOf(" "))
+        whenever(usuarioService.criar(any<Usuario>())).thenReturn(usuarioInvalido)
 
         mockMvc.perform(post("/usuarios")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(usuarioInvalido)))
             .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.name").value("nome deve ter entre 3 e 255 letras"))
-            .andExpect(jsonPath("$.birthDate").value("insira uma data valida"))
-    }
+            .andExpect(jsonPath("$.nome").value("Nome deve ter entre 3 e 255 caracteres."))
+            .andExpect(jsonPath("$.nick").value("Nick deve ter entre 1 e 255 caracteres."))
+            .andExpect(jsonPath("$.birthDate").value("Insira uma data válida."))
+            .andExpect(jsonPath("$.stack").value("A Stack não pode ser vazia nem nula, e deve ter menos de 32 caracteres."))
 
+    }
 
     @Test
     fun `409 quando nick ja existe`() {
@@ -100,6 +103,21 @@ class UsuarioControllerTest {
     }
 
     @Test
+    fun `200 com lista`() {
+        val usuario = Usuario(UUID.randomUUID(), "Hudson", "hud", LocalDate.now(), mutableListOf())
+       whenever(usuarioService.criar(any<Usuario>())).thenReturn(usuario)
+
+        // ha dúvidas a  tirar com o denão.
+        // não entendi o funcionamento exatamente.
+
+        mockMvc.perform(get("/usuarios")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(usuario)))
+            .andExpect(status().isOk)
+
+    }
+
+    @Test
     fun `200 quando existe ao buscar por id`() {
         val id = UUID.randomUUID()
         val usuario = Usuario(id, "Hudson", "hud", LocalDate.now(), mutableListOf())
@@ -107,7 +125,7 @@ class UsuarioControllerTest {
 
         mockMvc.perform(get("/usuarios/$id"))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.name").value("Hudson"))
+            .andExpect(jsonPath("$.nome").value("Hudson"))
     }
 
     @Test
@@ -129,11 +147,11 @@ class UsuarioControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(usuario)))
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.name").value("Editado"))
+            .andExpect(jsonPath("$.nome").value("Editado"))
     }
 
     @Test
-    fun `404 quando n existe ao editar`() {
+    fun `404 quando não existe ao editar`() {
         val id = UUID.randomUUID()
         val usuario = Usuario(id, "Editado", "edit", LocalDate.now(), mutableListOf())
         whenever(usuarioService.editarPorId(eq(id), any<Usuario>())).thenReturn(null)
@@ -147,13 +165,13 @@ class UsuarioControllerTest {
     @Test
     fun `400 para validacao ao editar`() {
         val id = UUID.randomUUID()
-        val usuarioInvalido = Usuario(id, "Ab", "edit", LocalDate.now())
+        val usuarioInvalido = Usuario(id, "An", "edit", LocalDate.now())
 
         mockMvc.perform(put("/usuarios/$id")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(usuarioInvalido)))
             .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.name").value("nome deve ter entre 3 e 255 letras"))
+            .andExpect(jsonPath("$.nome").value("Nome deve ter entre 3 e 255 caracteres."))
     }
 
     @Test
