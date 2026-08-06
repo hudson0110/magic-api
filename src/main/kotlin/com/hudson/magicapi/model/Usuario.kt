@@ -17,7 +17,7 @@ data class Usuario(
 
     @Id
     @GeneratedValue
-    val id: UUID? = null,
+    val id: UUID,
 
     @Column(nullable = false, length = 255)
     @field:NotBlank(message = "Nome necessário!")
@@ -28,13 +28,13 @@ data class Usuario(
     )
     val nome: String,
 
-    @Column(nullable = true, unique = true, length = 255)
+    @Column(nullable = false, unique = true, length = 255)
     @field:Size(
         min = 1,
         max = 255,
         message = "Nick deve ter entre 1 e 255 caracteres."
     )
-    val nick: String = "",
+    val nick: String,
 
     @Column(nullable = false)
     @field:NotNull(message = "Uma data é necessária.")

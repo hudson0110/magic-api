@@ -17,12 +17,8 @@ import java.util.*
 
 
 /*
-*
-* Estudar:
-*
-* junit
-* mokito
-*
+***estudar TDD
+
 * testes necessarios
 * {x} 201 com body ao criar valido
 * {x} 400 qunado algum campo estiver
@@ -53,12 +49,9 @@ class UsuarioControllerTest {
     @Autowired
     lateinit var objectMapper: ObjectMapper
 
-
-
     // should when e o padrão de nome dos testes da pags
     // deve retornar 201 quando criar valido
     // should retornar 201 when criar valido
-
 
     @Test
     fun `201 com body ao criar valido`() {
@@ -76,7 +69,6 @@ class UsuarioControllerTest {
 
     @Test
     fun `400 quando algum campo estiver invalido ao criar`() {
-        // Nome curto demais (falha Size) e data futura (falha PastOrPresent)
         val usuarioInvalido = Usuario(UUID.randomUUID(), "Bi", "", LocalDate.now().plusDays(1),mutableListOf(" "))
         whenever(usuarioService.criar(any<Usuario>())).thenReturn(usuarioInvalido)
 
@@ -107,14 +99,10 @@ class UsuarioControllerTest {
         val usuario = Usuario(UUID.randomUUID(), "Hudson", "hud", LocalDate.now(), mutableListOf())
        whenever(usuarioService.criar(any<Usuario>())).thenReturn(usuario)
 
-        // ha dúvidas a  tirar com o denão.
-        // não entendi o funcionamento exatamente.
-
         mockMvc.perform(get("/usuarios")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(usuario)))
             .andExpect(status().isOk)
-
     }
 
     @Test
