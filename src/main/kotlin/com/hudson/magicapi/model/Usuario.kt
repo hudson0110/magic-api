@@ -17,7 +17,7 @@ data class Usuario(
 
     @Id
     @GeneratedValue
-    val id: UUID,
+    val id: UUID?,
 
     @Column(nullable = false, length = 255)
     @field:NotBlank(message = "Nome necessário!")
