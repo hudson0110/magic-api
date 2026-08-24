@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.PutMapping
 import java.util.UUID
 import jakarta.validation.Valid
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
+import com.hudson.magicapi.dto.request.UsuarioRequest
+import com.hudson.magicapi.dto.response.UsuarioResponse
 
 
 @RestController
@@ -22,13 +24,19 @@ class UsuarioController (
     private val usuarioService: UsuarioService
 ) {
 
+
+    //tem validação
+    //primeira camada
+    //faz a primeira validação
+    //chama a service
+
     @GetMapping
-    fun listar(): List<Usuario> {
+    fun listar(): List<UsuarioResponse> {
         return usuarioService.listar()
     }
 
     @PostMapping
-    fun criar(@RequestBody @Valid usuario: Usuario): ResponseEntity<Usuario> {
+    fun criar(@RequestBody @Valid usuario: UsuarioRequest): ResponseEntity<UsuarioResponse> {
         val novoUsuario = usuarioService.criar(usuario)
         val location =
             ServletUriComponentsBuilder
@@ -41,7 +49,7 @@ class UsuarioController (
     }
 
     @GetMapping("/{id}")
-    fun buscarPorId(@PathVariable id: UUID): ResponseEntity<Usuario> {
+    fun buscarPorId(@PathVariable id: UUID): ResponseEntity<UsuarioResponse> {
         val usuario = usuarioService.buscarPorId(id)
         if (usuario != null) {
             return ResponseEntity.ok(usuario)
@@ -53,8 +61,8 @@ class UsuarioController (
     @PutMapping("/{id}")
     fun editarPorId(
         @PathVariable id: UUID,
-        @Valid @RequestBody usuario: Usuario
-    ): ResponseEntity<Usuario> {
+        @Valid @RequestBody usuario: UsuarioRequest
+    ): ResponseEntity<UsuarioResponse> {
 
         val usuarioAtualizado = usuarioService.editarPorId(id, usuario)
 
