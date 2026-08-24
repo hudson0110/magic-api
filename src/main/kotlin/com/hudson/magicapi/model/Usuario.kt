@@ -17,7 +17,10 @@ data class Usuario(
 
     @Id
     @GeneratedValue
-    val id: UUID,
+    val id: UUID?,
+
+    //ele precisa pode ser null pois e utilizado na criação do usuario.
+    //problema de exposição da entidade no controller
 
     @Column(nullable = false, length = 255)
     @field:NotBlank(message = "Nome necessário!")
@@ -28,7 +31,7 @@ data class Usuario(
     )
     val nome: String,
 
-    @Column(nullable = false, unique = true, length = 255)
+    @Column(nullable = false, unique = true, length = 255)//testar novamente com null no nick
     @field:Size(
         min = 1,
         max = 255,
@@ -41,7 +44,7 @@ data class Usuario(
     @field:PastOrPresent(message = "Insira uma data válida.")
     val birthDate: LocalDate,
 
-    @ElementCollection
+    @ElementCollection//testar no dbeaver
     @field:ValidStack
     val stack: MutableList<String> = mutableListOf()
 )
