@@ -4,6 +4,7 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
+import com.hudson.magicapi.exception.response.ErrorResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
@@ -14,12 +15,13 @@ class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidationException(
         ex: MethodArgumentNotValidException
-    ): ResponseEntity<Map<String, String>> {
+    ): ResponseEntity<Map<String, ErrorResponse>> {
 
-        val erros = mutableMapOf<String, String>()
+        val erros = mutableMapOf<String, ErrorResponse>()
 
         ex.bindingResult.fieldErrors.forEach { erro ->
-            erros[erro.field] = erro.defaultMessage ?: "Valor inválido"
+            erros[erro.field] = ErrorResponse(erro.code.toString(), erro.defaultMessage ?: "Valor inválido", "O valor " + erro.rejectedValue + " foi rejeitado pelo campo " + erro.field)
+
         }
 
         return ResponseEntity.badRequest().body(erros)
