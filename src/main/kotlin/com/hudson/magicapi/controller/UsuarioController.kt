@@ -1,68 +1,86 @@
 package com.hudson.magicapi.controller
 
-import com.hudson.magicapi.model.Usuario
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.bind.annotation.DeleteMapping
 import com.hudson.magicapi.service.UsuarioService
+import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.*
 import java.util.UUID
 import jakarta.validation.Valid
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import com.hudson.magicapi.dto.request.UsuarioRequest
 import com.hudson.magicapi.dto.response.UsuarioResponse
-
+import com.hudson.magicapi.dto.response.StackResponse
 
 @RestController
 @RequestMapping("/usuarios")
-class UsuarioController (
+class UsuarioController(
     private val usuarioService: UsuarioService
 ) {
 
-
-    //tem validação
-    //primeira camada
-    //faz a primeira validação
-    //chama a service
+    private val logger = LoggerFactory.getLogger(UsuarioController::class.java)
 
     @GetMapping
     fun listar(): List<UsuarioResponse> {
+        logger.info("Recebida requisição para listar usuários")
         return usuarioService.listar()
     }
 
     @PostMapping
     fun criar(@RequestBody @Valid usuario: UsuarioRequest): ResponseEntity<UsuarioResponse> {
+        logger.info("Recebida requisição para criar usuário. Nick={}", usuario.nick)
+
         val novoUsuario = usuarioService.criar(usuario)
+
         val location =
             ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(novoUsuario.id)
                 .toUri()
-        print(location)
+
         return ResponseEntity.created(location).body(novoUsuario)
     }
 
     @GetMapping("/{id}")
     fun buscarPorId(@PathVariable id: UUID): ResponseEntity<UsuarioResponse> {
+        logger.info("Recebida requisição para buscar usuário. Id={}", id)
+
         val usuario = usuarioService.buscarPorId(id)
-        if (usuario != null) {
-            return ResponseEntity.ok(usuario)
-        }else{
-            return ResponseEntity.notFound().build()
+
+        return if (usuario != null) {
+            ResponseEntity.ok(usuario)
+        } else {
+            ResponseEntity.notFound().build()
         }
     }
+
+
+    @GetMapping("/{id}/stacks")
+    fun listarStacksPorUsuario(
+        @PathVariable id: UUID
+    ): ResponseEntity<List<StackResponse>> {
+
+        logger.info("Recebida requisição para listar stacks do usuário. Id={}", id)
+
+        val stacks = usuarioService.listarStacksPorUsuario(id)
+
+        return if (stacks != null) {
+            ResponseEntity.ok(stacks)
+        } else {
+            ResponseEntity.notFound().build()
+        }
+    }
+
+
+
 
     @PutMapping("/{id}")
     fun editarPorId(
         @PathVariable id: UUID,
         @Valid @RequestBody usuario: UsuarioRequest
     ): ResponseEntity<UsuarioResponse> {
+
+        logger.info("Recebida requisição para editar usuário. Id={}", id)
 
         val usuarioAtualizado = usuarioService.editarPorId(id, usuario)
 
@@ -75,22 +93,12 @@ class UsuarioController (
 
     @DeleteMapping("/{id}")
     fun deletarPorId(@PathVariable id: UUID): ResponseEntity<Void> {
+        logger.info("Recebida requisição para deletar usuário. Id={}", id)
+
         return if (usuarioService.deletarPorId(id)) {
             ResponseEntity.noContent().build()
         } else {
             ResponseEntity.notFound().build()
         }
     }
-
 }
-
-/*
- * Controller responsável por expor os endpoints da API relacionados
- * aos usuários. Recebe requisições HTTP enviadas pelos clientes,
- * processa as solicitações e retorna as respostas adequadas.
- * Utiliza o UsuarioRepository para acessar os dados persistidos
- * no banco de dados. Através das anotações do Spring, é possível
- * definir rotas e métodos HTTP como GET, POST, PUT e DELETE.
- * Essa camada representa o ponto de entrada da aplicação para
- * operações realizadas pelos consumidores da API.
- */
