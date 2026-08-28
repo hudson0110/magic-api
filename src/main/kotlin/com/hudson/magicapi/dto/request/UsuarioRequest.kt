@@ -8,6 +8,8 @@ import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.PastOrPresent
 import jakarta.validation.constraints.Size
 import java.time.LocalDate
+import jakarta.validation.Valid
+import com.hudson.magicapi.dto.request.StackRequest
 
 
 
@@ -35,5 +37,6 @@ data class UsuarioRequest(
     val birthDate: LocalDate,
 
     @field:ValidStack
-    val stack: MutableList<String>
+    @field:Valid
+    val stack: List<StackRequest>
     )

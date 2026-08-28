@@ -1,124 +1,151 @@
 package com.hudson.magicapi.service
 
+import com.hudson.magicapi.dto.request.UsuarioRequest
+import com.hudson.magicapi.dto.response.StackResponse
+import com.hudson.magicapi.dto.response.UsuarioResponse
+import com.hudson.magicapi.model.Stack
 import com.hudson.magicapi.model.Usuario
 import com.hudson.magicapi.repository.UsuarioRepository
+import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import java.util.UUID
-import com.hudson.magicapi.dto.request.UsuarioRequest
-import com.hudson.magicapi.dto.response.UsuarioResponse
-import org.slf4j.LoggerFactory
-
 
 @Service
-class UsuarioService(private val usuarioRepository: UsuarioRepository)
-{
+class UsuarioService(
+    private val usuarioRepository: UsuarioRepository
+) {
 
     private val logger = LoggerFactory.getLogger(UsuarioService::class.java)
 
-    fun criar( usuarioRequest: UsuarioRequest): UsuarioResponse {
+    fun criar(usuarioRequest: UsuarioRequest): UsuarioResponse {
 
-        logger.info("Recebida solicitação de criação de usuário. Nick={}", usuarioRequest.nick)
+        val stacks = usuarioRequest.stack.map {
+            Stack(
+                id = null,
+                name = it.name,
+                level = it.level
+            )
+        }.toMutableList()
 
         val usuario = Usuario(
             id = null,
             nome = usuarioRequest.nome,
             nick = usuarioRequest.nick,
             birthDate = usuarioRequest.birthDate,
-            stack = usuarioRequest.stack
+            stack = stacks
         )
 
-        if (usuarioRepository.existsByNick(usuario.nick)){
-            logger.warn("Tentativa de criar usuário com nick já existente. Nick={}", usuario.nick)
+        if (usuarioRepository.existsByNick(usuario.nick)) {
+            logger.warn(
+                "Tentativa de criar usuário com nick já existente. Nick={}",
+                usuario.nick
+            )
             throw DataIntegrityViolationException("Nick já cadastrado")
         }
+
         val usuarioSalvo = usuarioRepository.save(usuario)
+
         logger.info("Usuário criado com sucesso. Id={}", usuarioSalvo.id)
 
-
-        return UsuarioResponse(
-            id = usuarioSalvo.id,
-            nome = usuarioSalvo.nome,
-            nick = usuarioSalvo.nick,
-            birthDate = usuarioSalvo.birthDate,
-            stack = usuarioSalvo.stack
-        )
+        return usuarioSalvo.toResponse()
     }
 
     fun listar(): List<UsuarioResponse> {
+
+        logger.debug("Buscando usuários no banco de dados")
+
         return usuarioRepository.findAll().map { usuario ->
-            logger.debug("Listando usuários")
-            UsuarioResponse(
-                id = usuario.id,
-                nome = usuario.nome,
-                nick = usuario.nick,
-                birthDate = usuario.birthDate,
-                stack = usuario.stack
-            )
+            usuario.toResponse()
         }
     }
 
-
     fun buscarPorId(id: UUID): UsuarioResponse? {
-        logger.info("Buscando usuário por id={}", id)
 
         val usuario = usuarioRepository.findById(id).orElse(null)
-            ?: return null
 
-        logger.info("Usuário encontrado. id={}", id)
+        if (usuario == null) {
+            logger.warn("Usuário não encontrado. Id={}", id)
+            return null
+        }
 
-        return UsuarioResponse(
-            id = usuario.id,
-            nome = usuario.nome,
-            nick = usuario.nick,
-            birthDate = usuario.birthDate,
-            stack = usuario.stack
-        )
+        return usuario.toResponse()
     }
 
-    fun editarPorId(id: UUID, usuarioRequest: UsuarioRequest): UsuarioResponse? {
-
-        logger.info("Iniciando edição do usuário. id={}", id)
+    fun editarPorId(
+        id: UUID,
+        usuarioRequest: UsuarioRequest
+    ): UsuarioResponse? {
 
         val usuarioExistente = usuarioRepository.findById(id).orElse(null)
-
-
-            ?:run {
-                logger.warn("Usuário não encontrado para edição. id={}", id)
+            ?: run {
+                logger.warn("Usuário não encontrado para edição. Id={}", id)
                 return null
             }
 
-        logger.info("Usuário editado com sucesso. id={}", id)
+        val stacks = usuarioRequest.stack.map {
+            Stack(
+                id = null,
+                name = it.name,
+                level = it.level
+            )
+        }.toMutableList()
 
         val usuarioEditado = usuarioExistente.copy(
             nome = usuarioRequest.nome,
             nick = usuarioRequest.nick,
             birthDate = usuarioRequest.birthDate,
-            stack = usuarioRequest.stack
+            stack = stacks
         )
 
         val usuarioSalvo = usuarioRepository.save(usuarioEditado)
 
-        return UsuarioResponse(
-            id = usuarioSalvo.id,
-            nome = usuarioSalvo.nome,
-            nick = usuarioSalvo.nick,
-            birthDate = usuarioSalvo.birthDate,
-            stack = usuarioSalvo.stack
-        )
+        logger.info("Usuário editado com sucesso. Id={}", id)
+
+        return usuarioSalvo.toResponse()
     }
 
     fun deletarPorId(id: UUID): Boolean {
 
-        logger.info("Solicitação de exclusão do usuário. id={}", id)
-
-        return if (usuarioRepository.existsById(id)) {
-            usuarioRepository.deleteById(id)
-            logger.info("Usuário removido com sucesso. id={}", id)
-            true
-        } else {
-            logger.warn("Tentativa de remover usuário inexistente. id={}", id)
-            false
+        if (!usuarioRepository.existsById(id)) {
+            logger.warn("Tentativa de remover usuário inexistente. Id={}", id)
+            return false
         }
+
+        usuarioRepository.deleteById(id)
+
+        logger.info("Usuário removido com sucesso. Id={}", id)
+
+        return true
+    }
+
+    fun listarStacksPorUsuario(id: UUID): List<StackResponse>? {
+
+        val usuario = usuarioRepository.findById(id).orElse(null)
+            ?: return null
+
+        return usuario.stack.map {
+            StackResponse(
+                id = it.id,
+                name = it.name,
+                level = it.level
+            )
+        }
+    }
+
+    private fun Usuario.toResponse(): UsuarioResponse {
+        return UsuarioResponse(
+            id = id,
+            nome = nome,
+            nick = nick,
+            birthDate = birthDate,
+            stack = stack.map {
+                StackResponse(
+                    id = it.id,
+                    name = it.name,
+                    level = it.level
+                )
+            }
+        )
     }
 }

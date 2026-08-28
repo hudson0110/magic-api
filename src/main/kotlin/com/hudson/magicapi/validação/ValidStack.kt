@@ -8,7 +8,7 @@ import kotlin.reflect.KClass
 @Retention(AnnotationRetention.RUNTIME)
 @Constraint(validatedBy = [StackValidator::class])
 annotation class ValidStack(
-    val message: String = "A Stack não pode ser vazia nem nula, e deve ter menos de 32 caracteres.",
+    val message: String = "A Stack não pode ser nula, vazia ou conter elementos nulosio, e deve ter menos de 32 caracteres.",
     val groups: Array<KClass<*>> = [],
     val payload: Array<KClass<out Payload>> = []
 )

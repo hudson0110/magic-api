@@ -1,19 +1,18 @@
 package com.hudson.magicapi.validation
 
+import com.hudson.magicapi.dto.request.StackRequest
 import jakarta.validation.ConstraintValidator
 import jakarta.validation.ConstraintValidatorContext
 
-class StackValidator : ConstraintValidator<ValidStack, List<String>> {
+class StackValidator : ConstraintValidator<ValidStack, List<StackRequest>> {
 
     override fun isValid(
-        value: List<String>?,
+        value: List<StackRequest>?,
         context: ConstraintValidatorContext
     ): Boolean {
 
         if (value == null) return false
 
-        return value.all {
-            it.isNotBlank() && it.length <= 32
-        }
+        return value.isNotEmpty()
     }
 }
