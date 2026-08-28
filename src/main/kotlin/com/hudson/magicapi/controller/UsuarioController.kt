@@ -71,9 +71,6 @@ class UsuarioController(
         }
     }
 
-
-
-
     @PutMapping("/{id}")
     fun editarPorId(
         @PathVariable id: UUID,

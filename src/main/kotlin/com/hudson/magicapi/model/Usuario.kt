@@ -22,9 +22,9 @@ data class Usuario(
     val birthDate: LocalDate,
 
     @OneToMany(
+        mappedBy = "usuario",
         cascade = [CascadeType.ALL],
         orphanRemoval = true
     )
-    @JoinColumn(name = "USUARIO_ID", nullable = false)
     val stack: MutableList<Stack> = mutableListOf()
 )

@@ -20,21 +20,24 @@ class UsuarioService(
 
     fun criar(usuarioRequest: UsuarioRequest): UsuarioResponse {
 
-        val stacks = usuarioRequest.stack.map {
-            Stack(
-                id = null,
-                name = it.name,
-                level = it.level
-            )
-        }.toMutableList()
 
         val usuario = Usuario(
             id = null,
             nome = usuarioRequest.nome,
             nick = usuarioRequest.nick,
-            birthDate = usuarioRequest.birthDate,
-            stack = stacks
+            birthDate = usuarioRequest.birthDate
         )
+
+        val stacks = usuarioRequest.stack.map {
+            Stack(
+                id = null,
+                name = it.name,
+                level = it.level,
+                usuario = usuario,
+            )
+        }.toMutableList()
+
+        usuario.stack.addAll(stacks)
 
         if (usuarioRepository.existsByNick(usuario.nick)) {
             logger.warn(
@@ -83,20 +86,24 @@ class UsuarioService(
                 return null
             }
 
+        val usuarioEditado = usuarioExistente.copy(
+            nome = usuarioRequest.nome,
+            nick = usuarioRequest.nick,
+            birthDate = usuarioRequest.birthDate
+        )
+
         val stacks = usuarioRequest.stack.map {
             Stack(
                 id = null,
                 name = it.name,
-                level = it.level
+                level = it.level,
+                usuario = usuarioEditado
             )
         }.toMutableList()
 
-        val usuarioEditado = usuarioExistente.copy(
-            nome = usuarioRequest.nome,
-            nick = usuarioRequest.nick,
-            birthDate = usuarioRequest.birthDate,
-            stack = stacks
-        )
+        usuarioEditado.stack.clear()
+
+        usuarioEditado.stack.addAll(stacks)
 
         val usuarioSalvo = usuarioRepository.save(usuarioEditado)
 

@@ -10,6 +10,8 @@ services:
 
     environment:
       ORACLE_PASSWORD: 123456
+      APP_USER: magicapi
+      APP_USER_PASSWORD: magicapi123
 
     volumes:
       - oracle-data:/opt/oracle/oradata

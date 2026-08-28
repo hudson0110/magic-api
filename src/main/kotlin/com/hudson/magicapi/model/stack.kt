@@ -15,5 +15,9 @@ data class Stack(
     val name: String,
 
     @Column(name = "STACK_LEVEL", nullable = false)
-    val level: Int
+    val level: Int,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "USUARIO_ID", nullable = false)
+    var usuario: Usuario
 )
