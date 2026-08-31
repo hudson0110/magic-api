@@ -7,9 +7,55 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
+import org.springframework.http.converter.HttpMessageNotReadableException
+import com.hudson.magicapi.exception.ResourceNotFoundException
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException::class)
+    fun handleResourceNotFound(
+        ex: ResourceNotFoundException
+    ): ResponseEntity<ErrorResponse> {
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(
+                ErrorResponse(
+                    erro = "NOT_FOUND",
+                    nomeParametro = "id",
+                    descricao = ex.message ?: "Recurso não encontrado."
+                )
+            )
+    }
+
+
+    @ExceptionHandler(HttpMessageNotReadableException::class)
+    fun handleHttpMessageNotReadable():
+            ResponseEntity<ErrorResponse> {
+
+        return ResponseEntity.badRequest().body(
+            ErrorResponse(
+                erro = "INVALID_REQUEST",
+                descricao = "Payload inválido ou campos obrigatórios ausentes."
+            )
+        )
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException::class)
+    fun handleTypeMismatch(
+        ex: MethodArgumentTypeMismatchException
+    ): ResponseEntity<ErrorResponse> {
+
+        return ResponseEntity.badRequest().body(
+            ErrorResponse(
+                erro = "INVALID_PARAMETER",
+                nomeParametro = ex.name,
+                descricao = "O parâmetro ${ex.name} deve ser um UUID válido."
+            )
+        )
+    }
+
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidationException(
@@ -30,14 +76,15 @@ class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DataIntegrityViolationException::class)
-    fun handleDataIntegrity(
-        ex: DataIntegrityViolationException
-    ): ResponseEntity<Map<String, String>> {
+    fun handleDataIntegrity(): ResponseEntity<ErrorResponse> {
 
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(
-            mapOf(
-                "erro" to "Nick já cadastrado"
+        return ResponseEntity
+            .status(HttpStatus.CONFLICT)
+            .body(
+                ErrorResponse(
+                    erro = "CONFLICT",
+                    descricao = "Nick já cadastrado"
+                )
             )
-        )
     }
 }

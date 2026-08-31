@@ -47,11 +47,7 @@ class UsuarioController(
 
         val usuario = usuarioService.buscarPorId(id)
 
-        return if (usuario != null) {
-            ResponseEntity.ok(usuario)
-        } else {
-            ResponseEntity.notFound().build()
-        }
+        return ResponseEntity.ok(usuario)
     }
 
 
@@ -64,11 +60,7 @@ class UsuarioController(
 
         val stacks = usuarioService.listarStacksPorUsuario(id)
 
-        return if (stacks != null) {
-            ResponseEntity.ok(stacks)
-        } else {
-            ResponseEntity.notFound().build()
-        }
+        return ResponseEntity.ok(stacks)
     }
 
     @PutMapping("/{id}")
@@ -81,21 +73,15 @@ class UsuarioController(
 
         val usuarioAtualizado = usuarioService.editarPorId(id, usuario)
 
-        return if (usuarioAtualizado != null) {
-            ResponseEntity.ok(usuarioAtualizado)
-        } else {
-            ResponseEntity.notFound().build()
-        }
+        return ResponseEntity.ok(usuarioAtualizado)
     }
 
     @DeleteMapping("/{id}")
     fun deletarPorId(@PathVariable id: UUID): ResponseEntity<Void> {
         logger.info("Recebida requisição para deletar usuário. Id={}", id)
 
-        return if (usuarioService.deletarPorId(id)) {
-            ResponseEntity.noContent().build()
-        } else {
-            ResponseEntity.notFound().build()
-        }
+        usuarioService.deletarPorId(id)
+
+        return ResponseEntity.noContent().build()
     }
 }

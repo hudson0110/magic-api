@@ -19,7 +19,8 @@ import com.hudson.magicapi.dto.response.StackResponse
 import com.hudson.magicapi.dto.request.StackRequest
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import org.junit.jupiter.params.provider.MethodSource
+import org.mockito.kotlin.doThrow
+import com.hudson.magicapi.exception.ResourceNotFoundException
 
 @WebMvcTest(UsuarioController::class)
 class UsuarioControllerTest {
@@ -166,11 +167,15 @@ class UsuarioControllerTest {
 
     @Test
     fun `404 quando nao existe ao buscar por id`() {
+
         val id = UUID.randomUUID()
-        whenever(usuarioService.buscarPorId(id)).thenReturn(null)
+
+        doThrow(ResourceNotFoundException("Usuário não encontrado."))
+            .whenever(usuarioService)
+            .buscarPorId(id)
 
         mockMvc.perform(get("/usuarios/$id"))
-            .andExpect(status().isNotFound)
+            .andExpect(status().isNotFound())
     }
 
     @Test
@@ -206,16 +211,24 @@ class UsuarioControllerTest {
 
     @Test
     fun `404 quando não existe ao editar`() {
+
         val id = UUID.randomUUID()
+
         val request = UsuarioRequest(
             nome = "Editado",
             nick = "edit",
             birthDate = LocalDate.now(),
-            stack = listOf(StackRequest(name = "Kotlin", level = 8))
+            stack = listOf(
+                StackRequest(
+                    name = "Kotlin",
+                    level = 8
+                )
+            )
         )
-        whenever(
-            usuarioService.editarPorId(eq(id), any<UsuarioRequest>())
-        ).thenReturn(null)
+
+        doThrow(ResourceNotFoundException("Usuário não encontrado."))
+            .whenever(usuarioService)
+            .editarPorId(eq(id), any<UsuarioRequest>())
 
         mockMvc.perform(
             put("/usuarios/$id")
@@ -249,8 +262,10 @@ class UsuarioControllerTest {
 
     @Test
     fun `204 inativa ao deletar`() {
+
         val id = UUID.randomUUID()
-        whenever(usuarioService.deletarPorId(id)).thenReturn(true)
+
+        doNothing().whenever(usuarioService).deletarPorId(id)
 
         mockMvc.perform(delete("/usuarios/$id"))
             .andExpect(status().isNoContent)
@@ -258,11 +273,15 @@ class UsuarioControllerTest {
 
     @Test
     fun `404 nao existe ao deletar`() {
+
         val id = UUID.randomUUID()
-        whenever(usuarioService.deletarPorId(id)).thenReturn(false)
+
+        doThrow(ResourceNotFoundException("Usuário não encontrado."))
+            .whenever(usuarioService)
+            .deletarPorId(id)
 
         mockMvc.perform(delete("/usuarios/$id"))
-            .andExpect(status().isNotFound)
+            .andExpect(status().isNotFound())
     }
 
     @Test

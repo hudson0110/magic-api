@@ -17,7 +17,8 @@ import org.springframework.dao.DataIntegrityViolationException
 import java.util.UUID
 import org.junit.jupiter.api.assertThrows
 import java.util.Optional
-import org.mockito.kotlin.never
+import com.hudson.magicapi.exception.ResourceNotFoundException
+
 
 class UsuarioServiceTest {
 
@@ -106,16 +107,16 @@ class UsuarioServiceTest {
     }
 
     @Test
-    fun `deve retornar null quando usuario nao existir`() {
+    fun `deve lancar excecao quando usuario nao existir`() {
 
         val id = UUID.randomUUID()
 
         whenever(usuarioRepository.findById(id))
             .thenReturn(Optional.empty())
 
-        val resultado = usuarioService.buscarPorId(id)
-
-        assertNull(resultado)
+        assertThrows<ResourceNotFoundException> {
+            usuarioService.buscarPorId(id)
+        }
 
         verify(usuarioRepository).findById(id)
     }
@@ -149,7 +150,7 @@ class UsuarioServiceTest {
     }
 
     @Test
-    fun `deve retornar null ao editar usuario inexistente`() {
+    fun `deve lancar excecao ao editar usuario inexistente`() {
 
         val id = UUID.randomUUID()
         val request = UsuarioRequest(nome = "Hudson Editado", nick = "hud.editado", birthDate = LocalDate.now(), stack = listOf(StackRequest(name = "Java", level = 9)))
@@ -157,9 +158,9 @@ class UsuarioServiceTest {
         whenever(usuarioRepository.findById(id))
             .thenReturn(Optional.empty())
 
-        val resultado = usuarioService.editarPorId(id, request)
-
-        assertNull(resultado)
+        assertThrows<ResourceNotFoundException> {
+            usuarioService.editarPorId(id, request)
+        }
 
         verify(usuarioRepository).findById(id)
     }
@@ -172,28 +173,23 @@ class UsuarioServiceTest {
         whenever(usuarioRepository.existsById(id))
             .thenReturn(true)
 
-        val resultado = usuarioService.deletarPorId(id)
-
-        assertTrue(resultado)
+        usuarioService.deletarPorId(id)
 
         verify(usuarioRepository).existsById(id)
         verify(usuarioRepository).deleteById(id)
     }
 
     @Test
-    fun `deve retornar false ao deletar usuario inexistente`() {
+    fun `deve lancar excecao ao deletar usuario inexistente`() {
 
         val id = UUID.randomUUID()
 
         whenever(usuarioRepository.existsById(id))
             .thenReturn(false)
 
-        val resultado = usuarioService.deletarPorId(id)
-
-        assertFalse(resultado)
-
-        verify(usuarioRepository).existsById(id)
-        verify(usuarioRepository, never()).deleteById(id)
+        assertThrows<ResourceNotFoundException> {
+            usuarioService.deletarPorId(id)
+        }
     }
 
     @Test
@@ -216,16 +212,16 @@ class UsuarioServiceTest {
     }
 
     @Test
-    fun `deve retornar null ao listar stacks de usuario inexistente`() {
+    fun `deve lancar excecao ao listar stacks de usuario inexistente`() {
 
         val id = UUID.randomUUID()
 
         whenever(usuarioRepository.findById(id))
             .thenReturn(Optional.empty())
 
-        val resultado = usuarioService.listarStacksPorUsuario(id)
-
-        assertNull(resultado)
+        assertThrows<ResourceNotFoundException> {
+            usuarioService.listarStacksPorUsuario(id)
+        }
 
         verify(usuarioRepository).findById(id)
     }

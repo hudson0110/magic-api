@@ -8,6 +8,7 @@ import com.hudson.magicapi.model.Usuario
 import com.hudson.magicapi.repository.UsuarioRepository
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
+import com.hudson.magicapi.exception.ResourceNotFoundException
 import org.springframework.stereotype.Service
 import java.util.UUID
 
@@ -63,14 +64,13 @@ class UsuarioService(
         }
     }
 
-    fun buscarPorId(id: UUID): UsuarioResponse? {
+    fun buscarPorId(id: UUID): UsuarioResponse {
 
         val usuario = usuarioRepository.findById(id).orElse(null)
-
-        if (usuario == null) {
-            logger.warn("Usuário não encontrado. Id={}", id)
-            return null
-        }
+            ?: run {
+                logger.warn("Usuário não encontrado. Id={}", id)
+                throw ResourceNotFoundException("Usuário não encontrado.")
+            }
 
         return usuario.toResponse()
     }
@@ -78,12 +78,12 @@ class UsuarioService(
     fun editarPorId(
         id: UUID,
         usuarioRequest: UsuarioRequest
-    ): UsuarioResponse? {
+    ): UsuarioResponse {
 
         val usuarioExistente = usuarioRepository.findById(id).orElse(null)
             ?: run {
                 logger.warn("Usuário não encontrado para edição. Id={}", id)
-                return null
+                throw ResourceNotFoundException("Usuário não encontrado.")
             }
 
         val usuarioEditado = usuarioExistente.copy(
@@ -102,7 +102,6 @@ class UsuarioService(
         }.toMutableList()
 
         usuarioEditado.stack.clear()
-
         usuarioEditado.stack.addAll(stacks)
 
         val usuarioSalvo = usuarioRepository.save(usuarioEditado)
@@ -112,24 +111,22 @@ class UsuarioService(
         return usuarioSalvo.toResponse()
     }
 
-    fun deletarPorId(id: UUID): Boolean {
+    fun deletarPorId(id: UUID) {
 
         if (!usuarioRepository.existsById(id)) {
             logger.warn("Tentativa de remover usuário inexistente. Id={}", id)
-            return false
+            throw ResourceNotFoundException("Usuário não encontrado.")
         }
 
         usuarioRepository.deleteById(id)
 
         logger.info("Usuário removido com sucesso. Id={}", id)
-
-        return true
     }
 
     fun listarStacksPorUsuario(id: UUID): List<StackResponse>? {
 
         val usuario = usuarioRepository.findById(id).orElse(null)
-            ?: return null
+            ?: throw ResourceNotFoundException("Usuário não encontrado.")
 
         return usuario.stack.map {
             StackResponse(
