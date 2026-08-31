@@ -1,7 +1,7 @@
 package com.hudson.magicapi.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.hudson.magicapi.model.Usuario
+import com.hudson.magicapi.dto.request.UsuarioRequest
 import com.hudson.magicapi.service.UsuarioService
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.*
@@ -14,28 +14,12 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.time.LocalDate
 import java.util.*
-
-
-/*
-***estudar TDD
-
-* testes necessarios
-* {x} 201 com body ao criar valido
-* {x} 400 qunado algum campo estiver
-* {x}409 qunado nik ja existe
-*
-* {x} 200 com lista
-*
-* {x}200 qunado existe
-* {x}404 qunado nao existe
-*
-* {x}200 quando atualiza os campos
-* {x}404 qunado não existe
-* {x}400 para validação
-*
-* {x}204 inativa
-* {x}404 nao exite
-*  */
+import com.hudson.magicapi.dto.response.UsuarioResponse
+import com.hudson.magicapi.dto.response.StackResponse
+import com.hudson.magicapi.dto.request.StackRequest
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
+import org.junit.jupiter.params.provider.MethodSource
 
 @WebMvcTest(UsuarioController::class)
 class UsuarioControllerTest {
@@ -49,70 +33,134 @@ class UsuarioControllerTest {
     @Autowired
     lateinit var objectMapper: ObjectMapper
 
-    // should when e o padrão de nome dos testes da pags
-    // deve retornar 201 quando criar valido
-    // should retornar 201 when criar valido
-
     @Test
     fun `201 com body ao criar valido`() {
         val id = UUID.randomUUID()
-        val usuario = Usuario(id, "Hudson", "hud", LocalDate.now(), mutableListOf())
-        whenever(usuarioService.criar(any<Usuario>())).thenReturn(usuario)//garantindo q to em um ambiante
+        val request = UsuarioRequest(
+            nome = "Hudson",
+            nick = "hud",
+            birthDate = LocalDate.now(),
+            stack = listOf(StackRequest(name = "Kotlin", level = 8))
+        )
+        val response = UsuarioResponse(
+            id = id,
+            nome = "Hudson",
+            nick = "hud",
+            birthDate = LocalDate.now(),
+            stack = listOf(StackResponse(id = UUID.randomUUID(), name = "Kotlin", level = 8))
+        )
+        whenever(usuarioService.criar(any<UsuarioRequest>())).thenReturn(response)
 
-        mockMvc.perform(post("/usuarios")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(usuario)))
+        mockMvc.perform(
+            post("/usuarios")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        )
             .andExpect(status().isCreated())
             .andExpect(header().exists("Location"))
-            .andExpect(jsonPath("$.nome").value(usuario.nome))
+            .andExpect(jsonPath("$.nome").value(response.nome))
     }
 
     @Test
     fun `400 quando algum campo estiver invalido ao criar`() {
-        val usuarioInvalido = Usuario(UUID.randomUUID(), "Bi", "", LocalDate.now().plusDays(1),mutableListOf(" "))
-        whenever(usuarioService.criar(any<Usuario>())).thenReturn(usuarioInvalido)
+        val requestInvalido = UsuarioRequest(
+            nome = "Bi",
+            nick = "",
+            birthDate = LocalDate.now().plusDays(1),
+            stack = listOf(StackRequest(name = "testando com mais de trinta e dois caracteres", level = 20))
+        )
 
-        mockMvc.perform(post("/usuarios")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(usuarioInvalido)))
-            .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.nome").value("Nome deve ter entre 3 e 255 caracteres."))
-            .andExpect(jsonPath("$.nick").value("Nick deve ter entre 1 e 255 caracteres."))
-            .andExpect(jsonPath("$.birthDate").value("Insira uma data válida."))
-            .andExpect(jsonPath("$.stack").value("A Stack não pode ser vazia nem nula, e deve ter menos de 32 caracteres."))
+        mockMvc.perform(
+            post("/usuarios")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestInvalido))
+        )
+            .andExpect(status().isBadRequest())
+
+            .andExpect(
+                jsonPath("$.nome.nome_parametro")
+                    .value("Nome deve ter entre 3 e 255 caracteres.")
+            )
+
+            .andExpect(
+                jsonPath("$.nick.nome_parametro")
+                    .value("Nick deve ter entre 1 e 255 caracteres.")
+            )
+
+            .andExpect(
+                jsonPath("$.birthDate.nome_parametro")
+                    .value("Insira uma data válida.")
+            )
+
+            .andExpect(
+                jsonPath("$['stack[0].name'].nome_parametro")
+                    .value("Nome da stack deve ter entre 1 e 32 caracteres.")
+            )
+
+            .andExpect(
+                jsonPath("$['stack[0].level'].nome_parametro")
+                    .value("Level deve ser no máximo 10.")
+            )
 
     }
 
     @Test
     fun `409 quando nick ja existe`() {
-        val usuario = Usuario(UUID.randomUUID(), "Hudson", "hud", LocalDate.now(), mutableListOf())
-        whenever(usuarioService.criar(any<Usuario>())).thenThrow(org.springframework.dao.DataIntegrityViolationException("Nick já existe"))
+        val request = UsuarioRequest(
+            nome = "Hudson",
+            nick = "hud",
+            birthDate = LocalDate.now(),
+            stack = listOf(StackRequest(name = "Kotlin", level = 8))
+        )
 
-        mockMvc.perform(post("/usuarios")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(usuario)))
-            .andExpect(status().isConflict)
+        whenever(usuarioService.criar(any<UsuarioRequest>())).thenThrow(
+            org.springframework.dao.DataIntegrityViolationException(
+                "Nick já existe"
+            )
+        )
+
+        mockMvc.perform(
+            post("/usuarios")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        )
+            .andExpect(status().isConflict())
     }
 
     @Test
     fun `200 com lista`() {
-        val usuario = Usuario(UUID.randomUUID(), "Hudson", "hud", LocalDate.now(), mutableListOf())
-       whenever(usuarioService.criar(any<Usuario>())).thenReturn(usuario)
+        val response = UsuarioResponse(
+            id = UUID.randomUUID(),
+            nome = "Hudson",
+            nick = "hud",
+            birthDate = LocalDate.now(),
+            stack = listOf(StackResponse(id = UUID.randomUUID(), name = "Kotlin", level = 8))
+        )
+        whenever(usuarioService.listar()).thenReturn(listOf(response))
 
-        mockMvc.perform(get("/usuarios")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(usuario)))
-            .andExpect(status().isOk)
+        mockMvc.perform(
+            get("/usuarios")
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+            .andExpect(status().isOk())
     }
 
     @Test
     fun `200 quando existe ao buscar por id`() {
+
         val id = UUID.randomUUID()
-        val usuario = Usuario(id, "Hudson", "hud", LocalDate.now(), mutableListOf())
-        whenever(usuarioService.buscarPorId(id)).thenReturn(usuario)
+        val response = UsuarioResponse(
+            id = id,
+            nome = "Hudson",
+            nick = "hud",
+            birthDate = LocalDate.now(),
+            stack = listOf(StackResponse(id = UUID.randomUUID(), name = "Kotlin", level = 8))
+        )
+        whenever(usuarioService.buscarPorId(id))
+            .thenReturn(response)
 
         mockMvc.perform(get("/usuarios/$id"))
-            .andExpect(status().isOk)
+            .andExpect(status().isOk())
             .andExpect(jsonPath("$.nome").value("Hudson"))
     }
 
@@ -128,38 +176,75 @@ class UsuarioControllerTest {
     @Test
     fun `200 quando atualiza os campos`() {
         val id = UUID.randomUUID()
-        val usuario = Usuario(id, "Editado", "edit", LocalDate.now(), mutableListOf())
-        whenever(usuarioService.editarPorId(eq(id), any<Usuario>())).thenReturn(usuario)
+        val request = UsuarioRequest(
+            nome = "Editado",
+            nick = "edit",
+            birthDate = LocalDate.now(),
+            stack = listOf(StackRequest(name = "Kotlin", level = 8))
+        )
+        val response = UsuarioResponse(
+            id = id,
+            nome = "Editado",
+            nick = "edit",
+            birthDate = LocalDate.now(),
+            stack = listOf(StackResponse(id = UUID.randomUUID(), name = "Kotlin", level = 8))
+        )
 
-        mockMvc.perform(put("/usuarios/$id")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(usuario)))
-            .andExpect(status().isOk)
+        whenever(
+            usuarioService.editarPorId(eq(id), any<UsuarioRequest>())
+        ).thenReturn(response)
+
+        mockMvc.perform(
+            put("/usuarios/$id")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        )
+            .andExpect(status().isOk())
             .andExpect(jsonPath("$.nome").value("Editado"))
+
     }
 
     @Test
     fun `404 quando não existe ao editar`() {
         val id = UUID.randomUUID()
-        val usuario = Usuario(id, "Editado", "edit", LocalDate.now(), mutableListOf())
-        whenever(usuarioService.editarPorId(eq(id), any<Usuario>())).thenReturn(null)
+        val request = UsuarioRequest(
+            nome = "Editado",
+            nick = "edit",
+            birthDate = LocalDate.now(),
+            stack = listOf(StackRequest(name = "Kotlin", level = 8))
+        )
+        whenever(
+            usuarioService.editarPorId(eq(id), any<UsuarioRequest>())
+        ).thenReturn(null)
 
-        mockMvc.perform(put("/usuarios/$id")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(usuario)))
-            .andExpect(status().isNotFound)
+        mockMvc.perform(
+            put("/usuarios/$id")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        )
+            .andExpect(status().isNotFound())
     }
 
     @Test
     fun `400 para validacao ao editar`() {
         val id = UUID.randomUUID()
-        val usuarioInvalido = Usuario(id, "An", "edit", LocalDate.now())
+        val requestInvalido = UsuarioRequest(
+            nome = "An",
+            nick = "edit",
+            birthDate = LocalDate.now(),
+            stack = listOf(StackRequest(name = "Kotlin", level = 8))
+        )
 
-        mockMvc.perform(put("/usuarios/$id")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(usuarioInvalido)))
-            .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.nome").value("Nome deve ter entre 3 e 255 caracteres."))
+        mockMvc.perform(
+            put("/usuarios/$id")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestInvalido))
+        )
+            .andExpect(status().isBadRequest())
+            .andExpect(
+                jsonPath("$.nome.nome_parametro")
+                    .value("Nome deve ter entre 3 e 255 caracteres.")
+            )
     }
 
     @Test
@@ -179,4 +264,112 @@ class UsuarioControllerTest {
         mockMvc.perform(delete("/usuarios/$id"))
             .andExpect(status().isNotFound)
     }
+
+    @Test
+    fun `400 quando nome da stack tiver mais de 32 caracteres`() {
+        val requestInvalido = UsuarioRequest(
+            nome = "Hudson",
+            nick = "hud",
+            birthDate = LocalDate.now(),
+            stack = listOf(StackRequest(name = "abcdefghijklmnopqrstuvwxyz1234567", level = 8))
+        )
+
+        mockMvc.perform(
+            post("/usuarios")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestInvalido))
+        )
+            .andExpect(status().isBadRequest())
+            .andExpect(
+                jsonPath("$['stack[0].name'].nome_parametro")
+                    .value("Nome da stack deve ter entre 1 e 32 caracteres.")
+            )
+    }
+
+    @Test
+    fun `200 quando existe stacks para o usuario`() {
+        val id = UUID.randomUUID()
+        val stack = StackResponse(id = UUID.randomUUID(), name = "Kotlin", level = 8)
+
+        whenever(usuarioService.listarStacksPorUsuario(id))
+            .thenReturn(listOf(stack))
+
+        mockMvc.perform(get("/usuarios/$id/stacks"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].name").value("Kotlin"))
+            .andExpect(jsonPath("$[0].level").value(8))
+    }
+
+    @Test
+    fun `200 quando usuario possui mais de uma stack`() {
+
+        val id = UUID.randomUUID()
+        val stacks = listOf(
+            StackResponse(id = UUID.randomUUID(), name = "Kotlin", level = 8),
+            StackResponse(id = UUID.randomUUID(), name = "Java", level = 9)
+        )
+
+        whenever(usuarioService.listarStacksPorUsuario(id))
+            .thenReturn(stacks)
+
+        mockMvc.perform(get("/usuarios/$id/stacks"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(2))
+            .andExpect(jsonPath("$[0].name").value("Kotlin"))
+            .andExpect(jsonPath("$[1].name").value("Java"))
+    }
+
+    @Test
+    fun `200 quando nao existem usuarios`() {
+        whenever(usuarioService.listar())
+            .thenReturn(emptyList())
+
+        mockMvc.perform(get("/usuarios"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(0))
+    }
+
+    @Test
+    fun `400 quando stack estiver vazia`() {
+
+        val request = UsuarioRequest(
+            nome = "Hudson",
+            nick = "hud",
+            birthDate = LocalDate.now(),
+            stack = emptyList()
+        )
+
+        mockMvc.perform(
+            post("/usuarios")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        )
+            .andExpect(status().isBadRequest())
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [0, 11, 20])
+    fun `400 quando level da stack for invalido`(level: Int) {
+
+        val request = UsuarioRequest(
+            nome = "Hudson",
+            nick = "hud",
+            birthDate = LocalDate.now(),
+            stack = listOf(
+                StackRequest(
+                    name = "Kotlin",
+                    level = level
+                )
+            )
+        )
+
+        mockMvc.perform(
+            post("/usuarios")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        )
+            .andExpect(status().isBadRequest())
+    }
+
 }
+
