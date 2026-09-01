@@ -10,6 +10,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import com.hudson.magicapi.dto.request.UsuarioRequest
 import com.hudson.magicapi.dto.response.UsuarioResponse
 import com.hudson.magicapi.dto.response.StackResponse
+import org.springframework.data.domain.Page
+import org.springframework.web.bind.annotation.RequestParam
 
 @RestController
 @RequestMapping("/usuarios")
@@ -24,6 +26,33 @@ class UsuarioController(
         logger.info("Recebida requisição para listar usuários")
         return usuarioService.listar()
     }
+
+
+    @GetMapping("/paginado")
+    fun listarPaginado(
+        @RequestParam(defaultValue = "0")
+        page: Int,
+        @RequestParam(defaultValue = "1")
+        size: Int,
+        @RequestParam(defaultValue = "nome")
+        sort: String
+    ): Page<UsuarioResponse> {
+
+        logger.info(
+            "Recebida requisição para listar usuários paginados. Page={} Size={} Sort={}",
+            page,
+            size,
+            sort
+        )
+
+        return usuarioService.listarPaginado(
+            page,
+            size,
+            sort
+        )
+    }
+
+
 
     @PostMapping
     fun criar(@RequestBody @Valid usuario: UsuarioRequest): ResponseEntity<UsuarioResponse> {

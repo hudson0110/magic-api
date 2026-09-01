@@ -11,6 +11,10 @@ import org.springframework.dao.DataIntegrityViolationException
 import com.hudson.magicapi.exception.ResourceNotFoundException
 import org.springframework.stereotype.Service
 import java.util.UUID
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
+
 
 @Service
 class UsuarioService(
@@ -54,6 +58,36 @@ class UsuarioService(
 
         return usuarioSalvo.toResponse()
     }
+
+
+
+    fun listarPaginado(
+        page: Int,
+        size: Int,
+        sort: String
+    ): Page<UsuarioResponse> {
+
+        logger.debug(
+            "Buscando usuários paginados. Page={} Size={} Sort={}",
+            page,
+            size,
+            sort
+        )
+
+        val pageable = PageRequest.of(
+            page,
+            size,
+            Sort.by(sort)
+        )
+
+        return usuarioRepository.findAll(pageable)
+            .map { usuario ->
+                usuario.toResponse()
+            }
+    }
+
+
+
 
     fun listar(): List<UsuarioResponse> {
 

@@ -11,9 +11,6 @@ import java.time.LocalDate
 import jakarta.validation.Valid
 import com.hudson.magicapi.dto.request.StackRequest
 
-
-
-
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy::class)
 data class UsuarioRequest(
 
